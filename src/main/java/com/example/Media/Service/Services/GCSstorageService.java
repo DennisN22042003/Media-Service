@@ -4,6 +4,7 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.google.auth.oauth2.GoogleCredentials;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.io.FileInputStream;
+import java.util.Collections;
 
 @Service
 public class GCSstorageService {
@@ -20,8 +23,11 @@ public class GCSstorageService {
     @Value("${spring.cloud.gcp.storage.bucket-name}")
     private String bucketName;
 
-    public GCSstorageService() {
-        this.storage = StorageOptions.getDefaultInstance().getService();
+    public GCSstorageService() throws IOException  {
+        // Authenticate using Application Default Credentials (ADC)
+        GoogleCredentials credentials = GoogleCredentials.getApplicationDefault()
+                .createScoped(Collections.singletonList("https://www.googleapis.com/auth/cloud-platform"));
+        storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
     }
 
     public String uploadImage(MultipartFile file) throws IOException {
