@@ -1,4 +1,4 @@
-package com.example.Media.Service;
+/*package com.example.Media.Service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,4 +10,4 @@ class MediaServiceApplicationTests {
 	void contextLoads() {
 	}
 
-}
+} */

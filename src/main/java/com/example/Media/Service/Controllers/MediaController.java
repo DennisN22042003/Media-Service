@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.Media.Service.Services.GCSstorageService;
+import com.example.Media.Service.Models.ImageMetadata;
 
 import java.io.IOException;
 
@@ -21,20 +22,21 @@ public class MediaController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
-            String fileUrl = gcsStorageService.uploadImage(file);
+            ImageMetadata metadata = gcsStorageService.uploadImage(file);
+            String fileUrl = metadata.getUrl(); // Assuming getUrl() method exists in ImageMetadata
             return ResponseEntity.ok(fileUrl);
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("Failed to upload image: " + e.getMessage());
         }
     }
 
-    @GetMapping("/view/{fileName}")
-    public ResponseEntity<String> getFileUrl(@PathVariable String fileName) {
+    @GetMapping("/view")
+    public ResponseEntity<String> getFileUrl(@RequestParam String fileName) {
         return ResponseEntity.ok(gcsStorageService.getFileURL(fileName));
     }
 
-    @DeleteMapping("/delete/{fileName}")
-    public ResponseEntity<String> deleteFile(@PathVariable String fileName) {
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteFile(@RequestParam String fileName) {
         gcsStorageService.deleteFile(fileName);
         return ResponseEntity.ok("File deleted successfully!");
     }

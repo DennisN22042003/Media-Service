@@ -6,38 +6,62 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Document(collection = "image_Metadate")
-public class ImageFile {
+public class ImageMetadata {
 
     @Id
     private String id;
+    private String url;
     private String fileName;
     private String bucketName;
     private String uploadedBy;
     private LocalDateTime uploadedAt;
 
-    // Constructor
-    public ImageFile(id, fileName, bucketName, uploadedBy, uploadedAt) {
-        this.id = id;
+    // Constructors
+    public ImageMetadata() {
+
+    }
+
+    public ImageMetadata(String fileName, String url) {
         this.fileName = fileName;
-        this.bucketName = bucketName;
+        this.url = url;
+        this.id = id;
         this.uploadedBy = uploadedBy;
         this.uploadedAt = uploadedAt;
     }
 
-    // Getters and Setters
+    // Getters & Setters
     public String getId() {
         return id;
     }
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getFileName() {
         return fileName;
     }
-    public String getBucketName() {
-        return bucketName;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
+
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public String getUploadedBy() {
         return uploadedBy;
     }
-    public String getUploadedAt() {
+    public void setUploadedBy(String uploadedBy) {
+            this.uploadedBy = uploadedBy;
+    }
+
+    public LocalDateTime getUploadedAt() {
         return uploadedAt;
+    }
+    public void setUploadedAt(LocalDateTime uploadedAt) {
+        this.uploadedAt = uploadedAt;
     }
 }
