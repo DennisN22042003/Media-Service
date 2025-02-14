@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -27,6 +29,8 @@ public class GCSstorageService {
     
     private final Storage storage;
     private final ImageMetadataRepository imageMetadataRepository; // Inject the MongoDB repository
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final String EVENT_SERVICE_URL = "http://event-service:8082/api/events";
 
     @Value("${spring.cloud.gcp.storage.bucket-name}")
     private String bucketName;
@@ -44,10 +48,28 @@ public class GCSstorageService {
                                 .getService();
     }
 
+    // Before storing the image, check if the event exists
+    public boolean isEventValid(String eventId) {
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(EVENT_SERVICE_URL + "/validate/" + eventId, String.class);
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            return false; // Event does not exist
+        }
+    }
+
     public ImageMetadata uploadImage(MultipartFile file) throws IOException {
         // Generate a unique file name
+        // String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
+        // String fileName = UUID.randomUUID().toString() + file.getOriginalFilename();
+        // BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
+
+        // Generate a unique image ID (UUID)
+        String imageId = UUID.randomUUID().toString();
         String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
-        String fileName = UUID.randomUUID().toString() + file.getOriginalFilename();
+
+        // Use the imageId as the file name
+        String fileName = imageId + extension;
         BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
 
         // Upload the image file to Google Cloud Storage
@@ -66,34 +88,37 @@ public class GCSstorageService {
         return imageMetadataRepository.save(metadata);
     }
 
-    public String getFileURL(String fileName) {
-        return String.format("https://storage.googleapis.com/%s/%s", bucketName, fileName);
+    public void linkImageToEvent(String eventId, String imageId) {
+        String url = EVENT_SERVICE_URL + "/" + eventId + "/add-image";
+
+        try {
+            restTemplate.postForEntity(url, imageId, String.class);
+            System.out.println("✅ Image linked to event with imageId: " + imageId);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to link media to event: " + e.getMessage());
+        }
+    }
+
+    public String getFileURL(String imageId) {
+        return String.format("https://storage.googleapis.com/%s/%s", bucketName, imageId);
     }
 
     @Transactional
-    public void deleteFile(String fileName) {
-        System.out.println("🔹 Attempting to delete file: " + fileName);
-
-        // Decode filename (handles URL encoding like %20 -> space)
-        try {
-            fileName = java.net.URLDecoder.decode(fileName, "UTF-8");
-        } catch (Exception e) {
-            throw new RuntimeException("❌ Error decoding filename: " + fileName, e);
-        }
-        System.out.println("✅ Decoded filename: " + fileName);
+    public void deleteFile(String imageId) {
+        System.out.println("🔹 Attempting to delete file with imageId: " + imageId);
 
         // Check if the file exists in GCS before deletion
-        Blob blob = storage.get(bucketName, fileName);
+        Blob blob = storage.get(bucketName, imageId);
         if (blob == null) {
-            throw new RuntimeException("⚠️ Image File not found in GCS: " + fileName);
+            throw new RuntimeException("⚠️ Image File not found in GCS: " + imageId);
         }
 
         // Delete Image File from GCS
-        boolean deleted = storage.delete(bucketName, fileName);
+        boolean deleted = storage.delete(bucketName, imageId);
         if (!deleted) {
-            throw new RuntimeException("❌ Failed to delete image file from GCS: " + fileName);
+            throw new RuntimeException("❌ Failed to delete image file from GCS: " + imageId);
         }
-        System.out.println("✅ File deleted from GCS.");
+        System.out.println("✅ Image File deleted from GCS");
 
         /*
          * // Check if metadata exists before deleting
@@ -105,7 +130,7 @@ public class GCSstorageService {
 
         // Delete metadata from MongoDB
         try {
-            imageMetadataRepository.deleteByFileName(fileName);
+            imageMetadataRepository.deleteByFileName(imageId);
             System.out.println("✅ Image File metadata deleted from MongoDB");
         } catch (Exception e) {
             // Handle failure by logging and potentially retrying later

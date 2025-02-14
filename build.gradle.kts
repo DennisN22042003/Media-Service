@@ -28,6 +28,7 @@ extra["springCloudVersion"] = "2024.0.0"
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-gcp-starter-storage:1.2.8.RELEASE") // gcs Support
     implementation("com.google.cloud:google-cloud-storage:2.27.1") // Google Cloud Storage SDK
+    implementation("org.springframework.kafka:spring-kafka:3.3.2") // Apache Kafka
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
