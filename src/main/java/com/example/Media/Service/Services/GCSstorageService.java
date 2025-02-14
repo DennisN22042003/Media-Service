@@ -30,7 +30,7 @@ public class GCSstorageService {
     private final Storage storage;
     private final ImageMetadataRepository imageMetadataRepository; // Inject the MongoDB repository
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String EVENT_SERVICE_URL = "http://event-service:8082/api/events";
+    private final String EVENT_SERVICE_URL = "http://localhost:8082/api/events";
 
     @Value("${spring.cloud.gcp.storage.bucket-name}")
     private String bucketName;
