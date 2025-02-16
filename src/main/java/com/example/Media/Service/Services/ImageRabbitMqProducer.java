@@ -17,9 +17,9 @@ public class ImageRabbitMqProducer {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendImageEvent(String eventId, String imageUrl) {
+    public void sendImageEvent(String eventId, String imageId) {
         // ImageEvent imageEvent = new ImageEvent(eventId, imageUrl);
-        ImageMetadata metadata = new ImageMetadata(eventId, imageUrl);
+        ImageMetadata metadata = new ImageMetadata(eventId, imageId);
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, metadata);
         System.out.println("Send image event for eventId: " + eventId);
     }
