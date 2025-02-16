@@ -10,6 +10,7 @@ public class ImageMetadata {
 
     @Id
     private String id;
+    private String eventId;
     private String url;
     private String fileName;
     private String bucketName;
@@ -25,6 +26,7 @@ public class ImageMetadata {
         this.fileName = fileName;
         this.url = url;
         this.id = id;
+        this.eventId = eventId;
         this.uploadedBy = uploadedBy;
         this.uploadedAt = uploadedAt;
     }
@@ -35,6 +37,13 @@ public class ImageMetadata {
     }
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
     }
 
     public String getFileName() {

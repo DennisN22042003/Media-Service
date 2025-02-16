@@ -10,6 +10,7 @@ import com.example.Media.Service.Models.ImageMetadata;
 @Service
 public class ImageRabbitMqProducer {
     
+    @Autowired
     private final RabbitTemplate rabbitTemplate;
 
     @Autowired
@@ -17,9 +18,14 @@ public class ImageRabbitMqProducer {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendImageEvent(String eventId, String imageId) {
+    public void sendImageEvent(String eventId, String imageId, String imageUrl) {
         // ImageEvent imageEvent = new ImageEvent(eventId, imageUrl);
-        ImageMetadata metadata = new ImageMetadata(eventId, imageId);
+        ImageMetadata metadata = new ImageMetadata();
+        metadata.setId(imageId);
+        metadata.setEventId(eventId);
+        metadata.setUrl(imageUrl);
+
+        // Send the ImageMetadata object to RabbitMQ
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, metadata);
         System.out.println("Send image event for eventId: " + eventId);
     }
