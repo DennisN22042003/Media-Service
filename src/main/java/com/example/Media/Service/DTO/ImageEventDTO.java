@@ -1,6 +1,10 @@
 package com.example.Media.Service.DTO;
 
-public class ImageEventDTO {
+import java.io.Serializable;
+
+public class ImageEventDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String eventId;
     private String imageUrl;
 
