@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.Media.Service.Configs.RabbitMQConfig;
-import com.example.Media.Service.Models.ImageMetadata;
+import com.example.Media.Service.DTO.ImageEventDTO;
 
 @Service
 public class ImageRabbitMqProducer {
@@ -18,15 +18,13 @@ public class ImageRabbitMqProducer {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendImageEvent(String eventId, String imageId, String imageUrl) {
-        // ImageEvent imageEvent = new ImageEvent(eventId, imageUrl);
-        ImageMetadata metadata = new ImageMetadata();
-        metadata.setId(imageId);
-        metadata.setEventId(eventId);
-        metadata.setUrl(imageUrl);
+    public void sendImageEvent(String eventId, String imageUrl) {
+        ImageEventDTO metadata = new ImageEventDTO(eventId, imageUrl);
+        metadata.getEventId();
+        metadata.getImageUrl();
 
         // Send the ImageMetadata object to RabbitMQ
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, metadata);
-        System.out.println("Send image event for eventId: " + eventId);
+        System.out.println("📤 Sent Image Event: " + metadata.getImageUrl() + " for Event: " + metadata.getEventId());
     }
 }
