@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 
 import com.example.Media.Service.Repositories.ImageMetadataRepository;
 import com.example.Media.Service.Models.ImageMetadata;
+import com.example.Media.Service.DTO.ImageEventDTO;
 
 @Service
 public class GCSstorageService {
@@ -58,7 +59,7 @@ public class GCSstorageService {
         }
     }
 
-    public ImageMetadata uploadImage(MultipartFile file) throws IOException {
+    public ImageMetadata uploadImage(MultipartFile file, String eventId) throws IOException {
         // Generate a unique file name
         // String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
         // String fileName = UUID.randomUUID().toString() + file.getOriginalFilename();
@@ -85,10 +86,16 @@ public class GCSstorageService {
         metadata.setUploadedAt(LocalDateTime.now());
         metadata.setUploadedBy("testUser"); // Replace with actual user info if available
 
+        // Metadata to be sent to Events Service via RabbitMQ(use DTO to avoid exposing schemas outside this Service)
+        ImageEventDTO DTOmetadata = new ImageEventDTO(eventId, fileUrl);
+        DTOmetadata.setEventId(eventId);
+        DTOmetadata.setImageUrl(fileUrl);
+        
+
         return imageMetadataRepository.save(metadata);
     }
 
-    public void linkImageToEvent(String eventId, String imageId) {
+    /*public void linkImageToEvent(String eventId, String imageId) {
         String url = EVENT_SERVICE_URL + "/" + eventId + "/add-image";
 
         try {
@@ -97,7 +104,7 @@ public class GCSstorageService {
         } catch (Exception e) {
             System.err.println("❌ Failed to link media to event: " + e.getMessage());
         }
-    }
+    } */
 
     public String getFileURL(String imageId) {
         return String.format("https://storage.googleapis.com/%s/%s", bucketName, imageId);
