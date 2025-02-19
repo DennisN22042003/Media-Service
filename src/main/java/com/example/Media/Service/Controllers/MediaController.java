@@ -37,11 +37,10 @@ public class MediaController {
         
         // Upload Image to GCS & Save metadata to MongoDB
         try {
-            ImageMetadata metadata = gcsStorageService.uploadImage(file);
+            ImageMetadata metadata = gcsStorageService.uploadImage(file, eventId);
             String fileUrl = metadata.getUrl(); // Assuming getUrl() method exists in ImageMetadata
-            String imageId = metadata.getId(); // Assuming getId() method exists in ImageMetadata
-            imageRabbitMqProducer.sendImageEvent(eventId, imageId); // Send RabbitMQ event to Events Micro-service
-            return ResponseEntity.ok("Photo uploaded, image event sent to Kafka" + fileUrl);
+            imageRabbitMqProducer.sendImageEvent(eventId, fileUrl); // Send RabbitMQ event to Events Micro-service
+            return ResponseEntity.ok("Photo uploaded, image event sent to Events Service via RabbitMQ" + fileUrl);
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("Failed to upload image: " + e.getMessage());
         }
