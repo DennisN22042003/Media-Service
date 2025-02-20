@@ -19,21 +19,21 @@ public class ImageRabbitMqProducer {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    // Send Image Event with eventId and imageUrl as strings to RabbitMQ
-    public void sendImageEvent(String eventId, String imageUrl) {
+    // Send Image Event with eventId, imageUrl and userId as strings to RabbitMQ
+    public void sendImageEvent(String eventId, String imageUrl, String userId) {
         // Create an ImageEventDTO object
-        ImageEventDTO metadata = new ImageEventDTO(eventId, imageUrl);
+        ImageEventDTO metadata = new ImageEventDTO(eventId, imageUrl, userId);
         metadata.getEventId();
         metadata.getImageUrl();
-
+        metadata.getUserId();
         // Log the ImageEventDTO before serialization
-        System.out.println("📤 Preparing to send Image Event: " + metadata.getImageUrl() + " for Event: " + metadata.getEventId());
+        System.out.println("📤 Preparing to send Image Event: " + metadata.getImageUrl() + " for Event: " + metadata.getEventId() + " for User: " + metadata.getUserId());
 
         // Serialize and send the ImageMetadata object to RabbitMQ
         rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, metadata);
 
         // Log the serialized message sent to RabbitMQ
-        System.out.println("📤 Sent Image Event (Serialized): " + metadata.getImageUrl() + " for Event: " + metadata.getEventId());
+        System.out.println("📤 Sent Image Event (Serialized): " + metadata.getImageUrl() + " for Event: " + metadata.getEventId() + " for User: " + metadata.getUserId());
     }
 }

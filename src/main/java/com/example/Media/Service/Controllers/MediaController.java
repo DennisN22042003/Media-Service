@@ -28,7 +28,7 @@ public class MediaController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("eventId") String eventId) {
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("eventId") String eventId, @RequestParam("userId") String userId) {
 
         // Validate Event
         if (!gcsStorageService.isEventValid(eventId)) {
@@ -37,9 +37,9 @@ public class MediaController {
         
         // Upload Image to GCS & Save metadata to MongoDB
         try {
-            ImageMetadata metadata = gcsStorageService.uploadImage(file, eventId);
+            ImageMetadata metadata = gcsStorageService.uploadImage(file, eventId, userId);
             String fileUrl = metadata.getUrl(); // Assuming getUrl() method exists in ImageMetadata
-            imageRabbitMqProducer.sendImageEvent(eventId, fileUrl); // Send RabbitMQ event to Events Micro-service
+            imageRabbitMqProducer.sendImageEvent(eventId, fileUrl, userId); // Send RabbitMQ event to Events Micro-service
             return ResponseEntity.ok("Photo uploaded, image event sent to Events Service via RabbitMQ" + fileUrl);
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("Failed to upload image: " + e.getMessage());

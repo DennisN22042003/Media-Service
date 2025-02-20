@@ -59,7 +59,7 @@ public class GCSstorageService {
         }
     }
 
-    public ImageMetadata uploadImage(MultipartFile file, String eventId) throws IOException {
+    public ImageMetadata uploadImage(MultipartFile file, String eventId, String userId) throws IOException {
         // Generate a unique file name
         // String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
         // String fileName = UUID.randomUUID().toString() + file.getOriginalFilename();
@@ -87,7 +87,8 @@ public class GCSstorageService {
         metadata.setUploadedBy("testUser"); // Replace with actual user info if available
 
         // Metadata to be sent to Events Service via RabbitMQ(use DTO to avoid exposing schemas outside this Service)
-        ImageEventDTO DTOmetadata = new ImageEventDTO(eventId, fileUrl);
+        ImageEventDTO DTOmetadata = new ImageEventDTO(eventId, fileUrl, userId);
+        DTOmetadata.setUserId(userId);
         DTOmetadata.setEventId(eventId);
         DTOmetadata.setImageUrl(fileUrl);
         
