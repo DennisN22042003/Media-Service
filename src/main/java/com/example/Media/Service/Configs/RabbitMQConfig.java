@@ -32,14 +32,14 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public MessageConverter JsonMessageConverter() {
+    public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        // No need for a custom message convertor as long as DTO is Serializable
+        rabbitTemplate.setMessageConverter(jsonMessageConverter()); // Ensures JSON converter is used globally
         return rabbitTemplate;
     }
 }
