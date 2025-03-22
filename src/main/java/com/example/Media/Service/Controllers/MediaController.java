@@ -11,6 +11,8 @@ import com.example.Media.Service.Services.ImageRabbitMqProducer;
 import com.example.Media.Service.Models.ImageMetadata;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/media")
@@ -28,21 +30,34 @@ public class MediaController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("eventId") String eventId, @RequestParam("userId") String userId) {
+    public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("eventId") String eventId, @RequestParam("userId") String userId) {
 
         // Validate Event
         if (!gcsStorageService.isEventValid(eventId)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Event ID");
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Invalid Event ID");
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
         
         // Upload Image to GCS & Save metadata to MongoDB
         try {
             ImageMetadata metadata = gcsStorageService.uploadImage(file, eventId, userId);
-            String fileUrl = metadata.getUrl(); // Assuming getUrl() method exists in ImageMetadata
-            imageRabbitMqProducer.sendImageEvent(eventId, fileUrl, userId); // Send RabbitMQ event to Events Micro-service
-            return ResponseEntity.ok("Photo uploaded, image event sent to Events Service via RabbitMQ" + fileUrl);
+            String fileUrl = metadata.getUrl();
+            imageRabbitMqProducer.sendImageEvent(eventId, fileUrl, userId);
+
+            Map<String, Object> successResponse = new HashMap<>();
+            successResponse.put("status", "success");
+            successResponse.put("message", "Photo uploaded, image event sent to Events Service via RabbitMQ");
+            successResponse.put("imageUrl", fileUrl);
+
+            return ResponseEntity.ok(successResponse);
         } catch (IOException e) {
-            return ResponseEntity.badRequest().body("Failed to upload image: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Failed to upload image: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 

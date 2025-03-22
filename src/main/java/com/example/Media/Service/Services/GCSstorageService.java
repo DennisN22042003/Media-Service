@@ -6,6 +6,7 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.google.auth.oauth2.GoogleCredentials;
 
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,11 +68,19 @@ public class GCSstorageService {
 
         // Generate a unique image ID (UUID)
         String imageId = UUID.randomUUID().toString();
-        String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
 
         // Use the imageId as the file name
         String fileName = imageId + extension;
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
+
+        // Determine Content-Type based on file extension
+        String contentType = determineContentType(extension);
+
+        // Create BlobInfo with Content-Type
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName)
+                .setContentType(contentType)
+                .build();
 
         // Upload the image file to Google Cloud Storage
         Blob blob = storage.create(blobInfo, file.getBytes());
@@ -94,6 +103,17 @@ public class GCSstorageService {
         
 
         return imageMetadataRepository.save(metadata);
+    }
+
+    // Helper method to determine Content-Type
+    private String determineContentType(String extension) {
+        switch (extension.toLowerCase()) {
+            case ".jpg":
+            case ".jpeg":
+                return MediaType.IMAGE_JPEG_VALUE;
+            default:
+                return MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
     }
 
     /*public void linkImageToEvent(String eventId, String imageId) {
